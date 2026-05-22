@@ -1,36 +1,23 @@
 package com.p2p.oms.dto.request;
 
-import com.p2p.oms.entity.ad.AdSide;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-public record CreateMakerAdRequest(
+public record UpdateMakerAdRequest(
 
-        @NotNull
-        UUID fiatAssetId,
-
-        @NotNull
-        UUID cryptoAssetId,
-
-        @NotBlank
-        AdSide side,
-
-        @NotNull
         @Positive
         BigDecimal price,
 
-        @NotNull
         @Positive
         BigDecimal minLimit,
 
-        @NotNull
         @Positive
         BigDecimal maxLimit,
 
-        @NotNull
         @Positive
         BigDecimal amount,
 
