@@ -1,0 +1,51 @@
+kind: Application
+spring:
+  application:
+    name: oms
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+        enhancer:
+          enableAssociationManagement: false
+
+  datasource:
+    url: jdbc:h2:mem:oms
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  sql:
+    init:
+      mode: never
+
+  devtools:
+    add-properties: false
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+logging:
+  level:
+    com.p2p.oms: INFO
+    root: WARN
+    org.springframework.boot: INFO
+    org.springframework.web: WARN
+    org.hibernate: WARN
+    org.springframework.integration: WARN
+    org.hibernate.orm.tooling.maven: ERROR
+    org.hibernate.bytecode.enhance: ERROR
+  pattern:
+    console: "%d{HH:mm:ss} %-5level %logger{36} - %msg%n"
