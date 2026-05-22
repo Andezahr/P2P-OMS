@@ -1,16 +1,24 @@
 package com.p2p.oms.service.command.impl;
 
+import com.p2p.oms.dto.request.ChangeAdStatusRequest;
 import com.p2p.oms.dto.request.CreateMakerAdRequest;
-import com.p2p.oms.entity.ad.*;
-import com.p2p.oms.entity.asset.*;
+import com.p2p.oms.dto.request.UpdateMakerAdRequest;
+import com.p2p.oms.entity.ad.AdStatus;
+import com.p2p.oms.entity.ad.MakerAd;
+import com.p2p.oms.entity.asset.CryptoAsset;
+import com.p2p.oms.entity.asset.FiatAsset;
 import com.p2p.oms.entity.payment.PaymentMethod;
-import com.p2p.oms.event.domain.AdCreatedEvent;
+import com.p2p.oms.event.domain.AdEvents;
+import com.p2p.oms.event.domain.DomainEventPublisher;
 import com.p2p.oms.exception.ForbiddenOperationException;
 import com.p2p.oms.exception.NotFoundException;
-import com.p2p.oms.repository.*;
+import com.p2p.oms.mapper.MakerAdMapper;
+import com.p2p.oms.repository.CryptoAssetRepository;
+import com.p2p.oms.repository.FiatAssetRepository;
+import com.p2p.oms.repository.MakerAdRepository;
+import com.p2p.oms.repository.PaymentMethodRepository;
 import com.p2p.oms.service.command.MakerAdService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,54 +28,60 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class MakerAdServiceImpl implements MakerAdService {
+public class MakerAdServiceImpl
+        implements MakerAdService {
 
     private final MakerAdRepository makerAdRepository;
     private final FiatAssetRepository fiatAssetRepository;
     private final CryptoAssetRepository cryptoAssetRepository;
     private final PaymentMethodRepository paymentMethodRepository;
 
-    private final ApplicationEventPublisher eventPublisher;
+    private final MakerAdMapper mapper;
+
+    private final DomainEventPublisher eventPublisher;
 
     @Override
     @Transactional
-    public MakerAd create(UUID userId, CreateMakerAdRequest request) {
+    public MakerAd create(
+            UUID userId,
+            CreateMakerAdRequest request
+    ) {
 
-        FiatAsset fiatAsset = fiatAssetRepository.findById(request.fiatAssetId())
-                .orElseThrow(() -> new NotFoundException("Fiat asset not found"));
+        FiatAsset fiatAsset = fiatAssetRepository.findById(
+                        request.fiatAssetId()
+                )
+                .orElseThrow(() ->
+                        new NotFoundException(
+                                "Fiat asset not found"
+                        )
+                );
 
-        CryptoAsset cryptoAsset = cryptoAssetRepository.findById(request.cryptoAssetId())
-                .orElseThrow(() -> new NotFoundException("Crypto asset not found"));
+        CryptoAsset cryptoAsset = cryptoAssetRepository.findById(
+                        request.cryptoAssetId()
+                )
+                .orElseThrow(() ->
+                        new NotFoundException(
+                                "Crypto asset not found"
+                        )
+                );
 
-        List<PaymentMethod> paymentMethods = paymentMethodRepository
-                .findAllById(request.paymentMethodIds());
+        List<PaymentMethod> paymentMethods =
+                paymentMethodRepository.findAllById(
+                        request.paymentMethodIds()
+                );
 
-        MakerAd ad = MakerAd.builder()
-                .userId(userId)
-                .side(AdSide.valueOf(request.side()))
-                .status(AdStatus.LISTED)
-                .fiatAsset(fiatAsset)
-                .cryptoAsset(cryptoAsset)
-                .price(request.price())
-                .minLimit(request.minLimit())
-                .maxLimit(request.maxLimit())
-                .amount(request.amount())
-                .paymentMethods(paymentMethods)
-                .build();
+        MakerAd ad = mapper.toEntity(
+                userId,
+                request,
+                fiatAsset,
+                cryptoAsset,
+                paymentMethods
+        );
 
         makerAdRepository.save(ad);
 
-        eventPublisher.publishEvent(
-                new AdCreatedEvent(
-                        UUID.randomUUID(),
-                        Instant.now(),
-                        ad.getId(),
-                        ad.getUserId(),
-                        ad.getSide().name(),
-                        ad.getFiatAsset().getCode(),
-                        ad.getCryptoAsset().getCode(),
-                        ad.getPrice()
-                )
+        eventPublisher.publish(
+                AdEvents.created(ad)
         );
 
         return ad;
@@ -75,17 +89,102 @@ public class MakerAdServiceImpl implements MakerAdService {
 
     @Override
     @Transactional
-    public void delete(UUID adId, UUID userId) {
+    public MakerAd update(
+            UUID adId,
+            UUID userId,
+            UpdateMakerAdRequest request
+    ) {
 
-        MakerAd ad = makerAdRepository.findById(adId)
-                .orElseThrow(() -> new NotFoundException("Ad not found"));
+        MakerAd ad = getOwnedAd(
+                adId,
+                userId
+        );
 
-        if (!ad.getUserId().equals(userId)) {
-            throw new ForbiddenOperationException("Cannot delete someone else's ad");
-        }
+        List<PaymentMethod> paymentMethods =
+                paymentMethodRepository.findAllById(
+                        request.paymentMethodIds()
+                );
 
-        ad.setStatus(AdStatus.DELETED);
+        ad.setPrice(request.price());
+        ad.setMinLimit(request.minLimit());
+        ad.setMaxLimit(request.maxLimit());
+        ad.setAmount(request.amount());
+        ad.setPaymentMethods(paymentMethods);
 
         makerAdRepository.save(ad);
+
+        eventPublisher.publish(
+                AdEvents.updated(ad)
+        );
+
+        return ad;
+    }
+
+    @Override
+    @Transactional
+    public void changeStatus(
+            UUID adId,
+            UUID userId,
+            ChangeAdStatusRequest request
+    ) {
+
+        MakerAd ad = getOwnedAd(
+                adId,
+                userId
+        );
+
+        ad.setStatus(request.status());
+
+        makerAdRepository.save(ad);
+
+        eventPublisher.publish(
+                AdEvents.statusChanged(
+                        ad,
+                        request.status()
+                )
+        );
+    }
+
+    @Override
+    @Transactional
+    public void delete(
+            UUID adId,
+            UUID userId
+    ) {
+
+        MakerAd ad = getOwnedAd(
+                adId,
+                userId
+        );
+
+        ad.setStatus(AdStatus.DELETED);
+        ad.setDeletedAt(Instant.now());
+
+        makerAdRepository.save(ad);
+
+        eventPublisher.publish(
+                AdEvents.deleted(ad)
+        );
+    }
+
+    private MakerAd getOwnedAd(
+            UUID adId,
+            UUID userId
+    ) {
+
+        MakerAd ad = makerAdRepository.findById(adId)
+                .orElseThrow(() ->
+                        new NotFoundException(
+                                "Ad not found"
+                        )
+                );
+
+        if (!ad.getUserId().equals(userId)) {
+            throw new ForbiddenOperationException(
+                    "Cannot manage someone else's ad"
+            );
+        }
+
+        return ad;
     }
 }
