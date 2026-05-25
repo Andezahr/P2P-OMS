@@ -1,11 +1,11 @@
 package com.p2p.oms.config;
 
-import com.p2p.oms.entity.asset.CryptoAsset;
-import com.p2p.oms.entity.asset.FiatAsset;
-import com.p2p.oms.entity.payment.PaymentMethod;
-import com.p2p.oms.repository.CryptoAssetRepository;
-import com.p2p.oms.repository.FiatAssetRepository;
-import com.p2p.oms.repository.PaymentMethodRepository;
+import com.p2p.oms.asset.entity.CryptoAsset;
+import com.p2p.oms.asset.entity.FiatAsset;
+import com.p2p.oms.payment.entity.PaymentMethod;
+import com.p2p.oms.asset.repository.CryptoAssetRepository;
+import com.p2p.oms.asset.repository.FiatAssetRepository;
+import com.p2p.oms.payment.repository.PaymentMethodRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.boot.CommandLineRunner;
