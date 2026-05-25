@@ -1,6 +1,5 @@
-package com.p2p.oms.ad.dto.request;
+package com.p2p.oms.dto.request;
 
-import com.p2p.oms.ad.entity.AdSide;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
@@ -16,7 +15,7 @@ public record CreateMakerAdRequest(
         UUID cryptoAssetId,
 
         @NotBlank
-        AdSide side,
+        String side,
 
         @NotNull
         @Positive
