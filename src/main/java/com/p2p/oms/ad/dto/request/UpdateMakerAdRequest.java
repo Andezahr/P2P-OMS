@@ -1,4 +1,4 @@
-package com.p2p.oms.dto.request;
+package com.p2p.oms.ad.dto.request;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
