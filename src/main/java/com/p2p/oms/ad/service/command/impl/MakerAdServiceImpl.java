@@ -1,23 +1,25 @@
-package com.p2p.oms.service.command.impl;
+package com.p2p.oms.ad.service.command.impl;
 
-import com.p2p.oms.dto.request.ChangeAdStatusRequest;
-import com.p2p.oms.dto.request.CreateMakerAdRequest;
-import com.p2p.oms.dto.request.UpdateMakerAdRequest;
-import com.p2p.oms.entity.ad.AdStatus;
-import com.p2p.oms.entity.ad.MakerAd;
-import com.p2p.oms.entity.asset.CryptoAsset;
-import com.p2p.oms.entity.asset.FiatAsset;
-import com.p2p.oms.entity.payment.PaymentMethod;
-import com.p2p.oms.event.domain.AdEvents;
-import com.p2p.oms.event.domain.DomainEventPublisher;
+
+import com.p2p.oms.ad.dto.request.ChangeAdStatusRequest;
+import com.p2p.oms.ad.dto.request.CreateMakerAdRequest;
+import com.p2p.oms.ad.dto.request.UpdateMakerAdRequest;
+import com.p2p.oms.ad.entity.AdStatus;
+import com.p2p.oms.ad.entity.MakerAd;
+import com.p2p.oms.ad.event.domain.AdEvents;
+import com.p2p.oms.ad.mapper.MakerAdMapper;
+import com.p2p.oms.ad.repository.MakerAdRepository;
+import com.p2p.oms.ad.service.command.MakerAdService;
+import com.p2p.oms.asset.entity.CryptoAsset;
+import com.p2p.oms.asset.entity.FiatAsset;
+import com.p2p.oms.asset.repository.CryptoAssetRepository;
+import com.p2p.oms.asset.repository.FiatAssetRepository;
+import com.p2p.oms.common.event.DomainEventPublisher;
 import com.p2p.oms.exception.ForbiddenOperationException;
 import com.p2p.oms.exception.NotFoundException;
-import com.p2p.oms.mapper.MakerAdMapper;
-import com.p2p.oms.repository.CryptoAssetRepository;
-import com.p2p.oms.repository.FiatAssetRepository;
-import com.p2p.oms.repository.MakerAdRepository;
-import com.p2p.oms.repository.PaymentMethodRepository;
-import com.p2p.oms.service.command.MakerAdService;
+
+import com.p2p.oms.payment.entity.PaymentMethod;
+import com.p2p.oms.payment.repository.PaymentMethodRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -179,7 +181,7 @@ public class MakerAdServiceImpl
                         )
                 );
 
-        if (!ad.getUserId().equals(userId)) {
+        if (!ad.getMakerUser().getId().equals(userId)) {
             throw new ForbiddenOperationException(
                     "Cannot manage someone else's ad"
             );

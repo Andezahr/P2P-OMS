@@ -1,8 +1,9 @@
 package com.p2p.oms.order.entity;
 
-import com.p2p.oms.common.entity.BaseEntity;
-import com.p2p.oms.user.User;
 import com.p2p.oms.ad.entity.MakerAd;
+import com.p2p.oms.common.entity.BaseEntity;
+import com.p2p.oms.payment.entity.PaymentMethod;
+import com.p2p.oms.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
@@ -51,6 +52,14 @@ public class Order extends BaseEntity {
             foreignKey = @ForeignKey(name = "fk_order_taker_user")
     )
     private User takerUser;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "payment_method_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_order_payment_method")
+    )
+    private PaymentMethod paymentMethod;
 
     @Positive
     @Column(nullable = false, precision = 19, scale = 8)

@@ -3,6 +3,7 @@ package com.p2p.oms.ad.repository;
 import com.p2p.oms.ad.entity.AdSide;
 import com.p2p.oms.ad.entity.AdStatus;
 import com.p2p.oms.ad.entity.MakerAd;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+@NullMarked
 public interface MakerAdRepository extends JpaRepository<MakerAd, UUID>,
         JpaSpecificationExecutor<MakerAd> {
 

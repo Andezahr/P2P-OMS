@@ -1,9 +1,10 @@
 package com.p2p.oms.ad.entity;
 
-import com.p2p.oms.common.entity.BaseEntity;
 import com.p2p.oms.asset.entity.CryptoAsset;
 import com.p2p.oms.asset.entity.FiatAsset;
+import com.p2p.oms.common.entity.BaseEntity;
 import com.p2p.oms.payment.entity.PaymentMethod;
+import com.p2p.oms.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
@@ -12,7 +13,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Table(
@@ -31,8 +31,13 @@ import java.util.UUID;
 @Builder
 public class MakerAd extends BaseEntity {
 
-    @Column(name = "user_id", nullable = false)
-    private UUID userId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_ad_maker_user")
+    )
+    private User makerUser;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 8)
@@ -63,12 +68,15 @@ public class MakerAd extends BaseEntity {
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal price;
 
+    @Positive
     @Column(name = "min_limit", nullable = false, precision = 19, scale = 8)
     private BigDecimal minLimit;
 
+    @Positive
     @Column(name = "max_limit", nullable = false, precision = 19, scale = 8)
     private BigDecimal maxLimit;
 
+    @Positive
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal amount;
 
@@ -84,5 +92,6 @@ public class MakerAd extends BaseEntity {
             inverseForeignKey = @ForeignKey(name = "fk_ad_payment_method_method")
     )
     @Builder.Default
-    private List<PaymentMethod> paymentMethods = new ArrayList<>();
+    private List<PaymentMethod> paymentMethods =
+            new ArrayList<>();
 }
