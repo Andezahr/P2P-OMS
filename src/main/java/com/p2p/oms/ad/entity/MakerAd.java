@@ -4,7 +4,7 @@ import com.p2p.oms.asset.entity.CryptoAsset;
 import com.p2p.oms.asset.entity.FiatAsset;
 import com.p2p.oms.common.entity.BaseEntity;
 import com.p2p.oms.payment.entity.PaymentMethod;
-import com.p2p.oms.user.User;
+import com.p2p.oms.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
 import lombok.*;

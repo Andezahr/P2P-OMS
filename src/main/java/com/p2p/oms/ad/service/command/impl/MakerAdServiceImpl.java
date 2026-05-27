@@ -20,6 +20,8 @@ import com.p2p.oms.exception.NotFoundException;
 
 import com.p2p.oms.payment.entity.PaymentMethod;
 import com.p2p.oms.payment.repository.PaymentMethodRepository;
+import com.p2p.oms.user.entity.User;
+import com.p2p.oms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,7 @@ public class MakerAdServiceImpl
         implements MakerAdService {
 
     private final MakerAdRepository makerAdRepository;
+    private final UserRepository userRepository;
     private final FiatAssetRepository fiatAssetRepository;
     private final CryptoAssetRepository cryptoAssetRepository;
     private final PaymentMethodRepository paymentMethodRepository;
@@ -49,6 +52,12 @@ public class MakerAdServiceImpl
             CreateMakerAdRequest request
     ) {
 
+        User makerUser = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new NotFoundException(
+                                "User not found"
+                        )
+                );
         FiatAsset fiatAsset = fiatAssetRepository.findById(
                         request.fiatAssetId()
                 )
@@ -73,7 +82,7 @@ public class MakerAdServiceImpl
                 );
 
         MakerAd ad = mapper.toEntity(
-                userId,
+                makerUser,
                 request,
                 fiatAsset,
                 cryptoAsset,

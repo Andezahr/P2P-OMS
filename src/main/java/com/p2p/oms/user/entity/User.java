@@ -1,4 +1,4 @@
-package com.p2p.oms.user;
+package com.p2p.oms.user.entity;
 
 import com.p2p.oms.ad.entity.MakerAd;
 import com.p2p.oms.common.entity.BaseEntity;

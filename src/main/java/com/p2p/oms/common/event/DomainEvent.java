@@ -8,4 +8,8 @@ public interface DomainEvent {
     UUID eventId();
 
     Instant occurredAt();
+
+    String eventType();
+
+    Integer eventVersion();
 }

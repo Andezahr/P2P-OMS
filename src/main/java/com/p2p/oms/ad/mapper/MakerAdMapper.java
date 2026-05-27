@@ -6,11 +6,12 @@ import com.p2p.oms.ad.entity.MakerAd;
 import com.p2p.oms.asset.entity.CryptoAsset;
 import com.p2p.oms.asset.entity.FiatAsset;
 import com.p2p.oms.payment.entity.PaymentMethod;
+
+import com.p2p.oms.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.util.List;
-import java.util.UUID;
 
 @Mapper(componentModel = "spring")
 public interface MakerAdMapper {
@@ -24,7 +25,7 @@ public interface MakerAdMapper {
     );
 
     @Mapping(target = "status", constant = "LISTED")
-    @Mapping(target = "userId", source = "userId")
+    @Mapping(target = "makerUser", source = "makerUser")
     @Mapping(target = "side", source = "request.side")
     @Mapping(target = "price", source = "request.price")
     @Mapping(target = "minLimit", source = "request.minLimit")
@@ -35,7 +36,7 @@ public interface MakerAdMapper {
     @Mapping(target = "paymentMethods", source = "paymentMethods")
     @Mapping(target = "deletedAt", ignore = true)
     MakerAd toEntity(
-            UUID userId,
+            User makerUser,
             CreateMakerAdRequest request,
             FiatAsset fiatAsset,
             CryptoAsset cryptoAsset,

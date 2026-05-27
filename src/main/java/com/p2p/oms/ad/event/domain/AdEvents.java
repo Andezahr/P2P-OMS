@@ -19,7 +19,7 @@ public final class AdEvents {
                 UUID.randomUUID(),
                 Instant.now(),
                 ad.getId(),
-                ad.getUserId(),
+                ad.getMakerUser().getId(),
                 ad.getSide().name(),
                 ad.getFiatAsset().getCode(),
                 ad.getCryptoAsset().getCode(),
@@ -35,7 +35,7 @@ public final class AdEvents {
                 UUID.randomUUID(),
                 Instant.now(),
                 ad.getId(),
-                ad.getUserId()
+                ad.getMakerUser().getId()
         );
     }
 
@@ -47,7 +47,7 @@ public final class AdEvents {
                 UUID.randomUUID(),
                 Instant.now(),
                 ad.getId(),
-                ad.getUserId()
+                ad.getMakerUser().getId()
         );
     }
 
@@ -60,7 +60,7 @@ public final class AdEvents {
                 UUID.randomUUID(),
                 Instant.now(),
                 ad.getId(),
-                ad.getUserId(),
+                ad.getMakerUser().getId(),
                 newStatus
         );
     }

@@ -6,10 +6,13 @@ import com.p2p.oms.payment.entity.PaymentMethod;
 import com.p2p.oms.asset.repository.CryptoAssetRepository;
 import com.p2p.oms.asset.repository.FiatAssetRepository;
 import com.p2p.oms.payment.repository.PaymentMethodRepository;
+import com.p2p.oms.user.entity.User;
+import com.p2p.oms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+
 
 @Component
 @RequiredArgsConstructor
@@ -18,6 +21,7 @@ public class DataInitializer implements CommandLineRunner {
     private final FiatAssetRepository fiatAssetRepository;
     private final CryptoAssetRepository cryptoAssetRepository;
     private final PaymentMethodRepository paymentMethodRepository;
+    private final UserRepository userRepository;
 
     @NullMarked
     @Override
@@ -25,6 +29,7 @@ public class DataInitializer implements CommandLineRunner {
         seedFiatAssets();
         seedCryptoAssets();
         seedPaymentMethods();
+        seedUser();
     }
 
     private void seedFiatAssets() {
@@ -71,5 +76,13 @@ public class DataInitializer implements CommandLineRunner {
                         .provider("CBR")
                         .build()
         );
+    }
+
+    private void seedUser() {
+        if (userRepository.count() > 0) {
+            return;
+        }
+        User us = new User();
+        userRepository.save(us);
     }
 }

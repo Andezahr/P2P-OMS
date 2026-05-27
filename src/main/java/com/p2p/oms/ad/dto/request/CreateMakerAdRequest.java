@@ -15,7 +15,7 @@ public record CreateMakerAdRequest(
         @NotNull
         UUID cryptoAssetId,
 
-        @NotBlank
+        @NotNull
         AdSide side,
 
         @NotNull
