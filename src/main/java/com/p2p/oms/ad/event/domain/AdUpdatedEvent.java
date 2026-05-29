@@ -15,4 +15,13 @@ public record AdUpdatedEvent(
 
         UUID userId
 ) implements DomainEvent {
+    @Override
+    public String eventType() {
+        return "ad.updated";
+    }
+
+    @Override
+    public Integer eventVersion() {
+        return 1;
+    }
 }

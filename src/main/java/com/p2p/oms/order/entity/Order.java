@@ -3,9 +3,7 @@ package com.p2p.oms.order.entity;
 import com.p2p.oms.ad.entity.MakerAd;
 import com.p2p.oms.common.entity.BaseEntity;
 import com.p2p.oms.exception.StatusSequenceViolatedException;
-import com.p2p.oms.order.event.domain.OrderCancelledEvent;
-import com.p2p.oms.order.event.domain.OrderCompletedEvent;
-import com.p2p.oms.order.event.domain.OrderCreatedEvent;
+import com.p2p.oms.order.event.domain.*;
 import com.p2p.oms.payment.entity.PaymentMethod;
 import com.p2p.oms.user.entity.User;
 import jakarta.persistence.*;
@@ -14,7 +12,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.UUID;
 
 @Entity
 @Table(
@@ -84,8 +81,7 @@ public class Order extends BaseEntity {
             User takerUser,
             PaymentMethod paymentMethod,
             BigDecimal amount,
-            BigDecimal price,
-            Instant expiresAt
+            BigDecimal price
     ) {
         this.makerAd = makerAd;
         this.makerUser = makerUser;
@@ -93,8 +89,9 @@ public class Order extends BaseEntity {
         this.paymentMethod = paymentMethod;
         this.amount = amount;
         this.price = price;
-        this.expiresAt = expiresAt;
-        this.status = OrderStatus.CREATED;
+        this.status = OrderStatus.PENDING;
+        createdAt = Instant.now();
+        expiresAt = Instant.now().plusSeconds(1200);
     }
 
     public static Order create(
@@ -103,8 +100,7 @@ public class Order extends BaseEntity {
             User takerUser,
             PaymentMethod paymentMethod,
             BigDecimal amount,
-            BigDecimal price,
-            Instant expiresAt
+            BigDecimal price
     ) {
         Order order = new Order(
                 makerAd,
@@ -112,8 +108,7 @@ public class Order extends BaseEntity {
                 takerUser,
                 paymentMethod,
                 amount,
-                price,
-                expiresAt
+                price
         );
         order.registerEvent(
                 OrderCreatedEvent.create(
@@ -147,6 +142,20 @@ public class Order extends BaseEntity {
         );
     }
 
+    public void markAsPaid() {
+        if (status != OrderStatus.PENDING) {
+            throw new StatusSequenceViolatedException("Only pending orders can be marked as paid");
+        }
+
+        this.status = OrderStatus.PAID;
+
+        registerEvent(OrderPaidEvent.create(
+                getId(),
+                getMakerUser().getId(),
+                getTakerUser().getId()
+        ));
+    }
+
     public void complete() {
 
         if (status != OrderStatus.PAID) {
@@ -160,6 +169,34 @@ public class Order extends BaseEntity {
                         getId(),
                         getMakerUser().getId(),
                         getTakerUser().getId()
+                )
+        );
+    }
+
+    public void openDispute() {
+
+        this.status = OrderStatus.DISPUTED;
+
+        registerEvent(
+                OrderDisputedEvent.create(
+                        getId(),
+                        getMakerUser().getId(),
+                        getTakerUser().getId(),
+                        getAmount()
+                )
+        );
+    }
+
+
+    public void expire() {
+
+        this.status = OrderStatus.CANCELLED;
+
+        registerEvent(
+                OrderExpiredEvent.create(
+                        getMakerUser().getId(),
+                        getTakerUser().getId(),
+                        getAmount()
                 )
         );
     }

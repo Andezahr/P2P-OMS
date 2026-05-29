@@ -16,4 +16,13 @@ public record AdCreatedEvent(
         String crypto,
         BigDecimal price
 ) implements DomainEvent {
+    @Override
+    public String eventType() {
+        return "ad.created";
+    }
+
+    @Override
+    public Integer eventVersion() {
+        return 1;
+    }
 }

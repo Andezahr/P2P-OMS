@@ -52,29 +52,15 @@ public class MakerAdServiceImpl
             CreateMakerAdRequest request
     ) {
 
-        User makerUser = userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new NotFoundException(
-                                "User not found"
-                        )
-                );
-        FiatAsset fiatAsset = fiatAssetRepository.findById(
-                        request.fiatAssetId()
-                )
-                .orElseThrow(() ->
-                        new NotFoundException(
-                                "Fiat asset not found"
-                        )
-                );
-
-        CryptoAsset cryptoAsset = cryptoAssetRepository.findById(
-                        request.cryptoAssetId()
-                )
-                .orElseThrow(() ->
-                        new NotFoundException(
-                                "Crypto asset not found"
-                        )
-                );
+        User makerUser = userRepository
+                .findById(userId)
+                .orElseThrow(NotFoundException.of("USER"));
+        FiatAsset fiatAsset = fiatAssetRepository
+                .findById(request.fiatAssetId())
+                .orElseThrow(NotFoundException.of("FIAT_ASSET"));
+        CryptoAsset cryptoAsset = cryptoAssetRepository
+                .findById(request.cryptoAssetId())
+                .orElseThrow(NotFoundException.of("CRYPTO_ASSET"));
 
         List<PaymentMethod> paymentMethods =
                 paymentMethodRepository.findAllById(
@@ -184,11 +170,7 @@ public class MakerAdServiceImpl
     ) {
 
         MakerAd ad = makerAdRepository.findById(adId)
-                .orElseThrow(() ->
-                        new NotFoundException(
-                                "Ad not found"
-                        )
-                );
+                .orElseThrow(NotFoundException.of("MAKER_AD"));
 
         if (!ad.getMakerUser().getId().equals(userId)) {
             throw new ForbiddenOperationException(

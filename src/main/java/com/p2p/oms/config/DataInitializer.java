@@ -13,6 +13,8 @@ import org.jspecify.annotations.NullMarked;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+
 
 @Component
 @RequiredArgsConstructor
@@ -83,6 +85,8 @@ public class DataInitializer implements CommandLineRunner {
             return;
         }
         User us = new User();
+        us.setEmail("ex@gmail.com");
+        us.setBalance(BigDecimal.valueOf(1000));
         userRepository.save(us);
     }
 }

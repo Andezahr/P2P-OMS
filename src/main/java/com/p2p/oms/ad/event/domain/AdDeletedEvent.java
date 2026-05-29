@@ -15,4 +15,13 @@ public record AdDeletedEvent(
 
         UUID userId
 ) implements DomainEvent {
+    @Override
+    public String eventType() {
+        return "ad.deleted";
+    }
+
+    @Override
+    public Integer eventVersion() {
+        return 1;
+    }
 }

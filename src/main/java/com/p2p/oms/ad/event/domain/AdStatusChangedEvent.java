@@ -19,4 +19,13 @@ public record AdStatusChangedEvent(
         AdStatus newStatus
 
 ) implements DomainEvent {
+    @Override
+    public String eventType() {
+        return "ad.status";
+    }
+
+    @Override
+    public Integer eventVersion() {
+        return 1;
+    }
 }

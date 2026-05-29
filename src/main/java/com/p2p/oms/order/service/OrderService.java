@@ -1,34 +1,30 @@
 package com.p2p.oms.order.service;
 
 import com.p2p.oms.order.dto.request.CreateOrderRequest;
-import com.p2p.oms.order.entity.Order;
-
+import com.p2p.oms.order.dto.response.OrderResponse;
 import java.util.UUID;
 
 public interface OrderService {
 
-    Order create(
+    OrderResponse create(
             CreateOrderRequest request
     );
 
     void markAsPaid(
-            UUID orderId,
-            UUID userId
+            UUID orderId
     );
 
-    void confirmPayment(
-            UUID orderId,
-            UUID userId
+    void complete(
+            UUID orderId
     );
 
     void cancel(
-            UUID orderId,
-            UUID userId
+            UUID orderId
     );
 
     void openDispute(
             UUID orderId,
-            UUID userId,
+            UUID disputeInitiatorId,
             String reason
     );
 
