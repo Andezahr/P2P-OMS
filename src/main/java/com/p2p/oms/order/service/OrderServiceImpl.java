@@ -100,7 +100,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void persist(Order order) {
-        orderRepository.save(order);
+        orderRepository.saveAndFlush(order);
         eventPublisher.publishAll(order.pullEvents());
     }
 }

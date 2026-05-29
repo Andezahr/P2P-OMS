@@ -43,4 +43,7 @@ public abstract class BaseEntity {
         return events;
     }
 
+    @Version
+    @Column(nullable = false)
+    private Long version;
 }
