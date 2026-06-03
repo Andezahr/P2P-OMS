@@ -12,8 +12,6 @@ public record AdCreatedEvent(
         UUID adId,
         UUID userId,
         String side,
-        String fiat,
-        String crypto,
         BigDecimal price
 ) implements DomainEvent {
     @Override

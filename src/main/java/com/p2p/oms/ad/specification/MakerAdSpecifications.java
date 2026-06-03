@@ -19,8 +19,6 @@ public final class MakerAdSpecifications {
         return Specification.allOf(
                 MakerAdPredicates.hasStatus(AdStatus.LISTED),
                 MakerAdPredicates.hasSide(criteria.side()),
-                MakerAdPredicates.hasFiat(criteria.fiat()),
-                MakerAdPredicates.hasCrypto(criteria.crypto()),
                 MakerAdPredicates.supportsAmount(criteria.amount())
         );
     }

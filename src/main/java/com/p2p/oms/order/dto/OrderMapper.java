@@ -12,6 +12,5 @@ public interface OrderMapper {
     @Mapping(target = "makerAdId", source = "makerAd.id")
     @Mapping(target = "makerUserId", source = "makerUser.id")
     @Mapping(target = "takerUserId", source = "takerUser.id")
-    @Mapping(target = "paymentMethodId", source = "paymentMethod.id")
     OrderResponse toResponse(Order order);
 }

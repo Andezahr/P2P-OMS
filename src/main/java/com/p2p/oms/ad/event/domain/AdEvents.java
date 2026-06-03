@@ -21,8 +21,6 @@ public final class AdEvents {
                 ad.getId(),
                 ad.getMakerUser().getId(),
                 ad.getSide().name(),
-                ad.getFiatAsset().getCode(),
-                ad.getCryptoAsset().getCode(),
                 ad.getPrice()
         );
     }

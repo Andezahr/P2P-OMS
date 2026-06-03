@@ -1,11 +1,8 @@
 package com.p2p.oms.ad.dto.request;
 
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
 
 public record UpdateMakerAdRequest(
 
@@ -19,9 +16,6 @@ public record UpdateMakerAdRequest(
         BigDecimal maxLimit,
 
         @Positive
-        BigDecimal amount,
-
-        @NotEmpty
-        List<UUID> paymentMethodIds
+        BigDecimal amount
 ) {
 }

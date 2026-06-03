@@ -14,9 +14,6 @@ public record CreateOrderRequest(
         @NotNull
         UUID takerUserId,
 
-        @NotNull
-        UUID paymentMethodId,
-
         @Positive
         BigDecimal amount
 ) {

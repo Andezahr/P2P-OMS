@@ -7,13 +7,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+
 public record CreateMakerAdRequest(
-
-        @NotNull
-        UUID fiatAssetId,
-
-        @NotNull
-        UUID cryptoAssetId,
 
         @NotNull
         AdSide side,
@@ -32,9 +27,6 @@ public record CreateMakerAdRequest(
 
         @NotNull
         @Positive
-        BigDecimal amount,
-
-        @NotEmpty
-        List<UUID> paymentMethodIds
+        BigDecimal amount
 ) {
 }

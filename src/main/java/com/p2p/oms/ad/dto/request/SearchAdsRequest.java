@@ -6,10 +6,6 @@ import java.math.BigDecimal;
 
 public record SearchAdsRequest(
 
-        String fiat,
-
-        String crypto,
-
         AdSide side,
 
         BigDecimal amount

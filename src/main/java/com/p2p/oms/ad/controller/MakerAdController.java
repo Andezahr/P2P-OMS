@@ -32,12 +32,10 @@ public class MakerAdController {
 
     @GetMapping
     public PageResponse<MakerAdResponse> search(
-            @RequestParam(required = false) String fiat,
-            @RequestParam(required = false) String crypto,
             @RequestParam(required = false) AdSide side,
             @RequestParam(required = false) BigDecimal amount,
             Pageable pageable) {
-        SearchAdsRequest request = new SearchAdsRequest(fiat, crypto, side, amount);
+        SearchAdsRequest request = new SearchAdsRequest(side, amount);
         return queryService.search(searchAdsMapper.toCriteria(request), pageable);
     }
 

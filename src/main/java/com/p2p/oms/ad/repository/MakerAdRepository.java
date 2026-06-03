@@ -18,9 +18,6 @@ public interface MakerAdRepository extends JpaRepository<MakerAd, UUID>,
         JpaSpecificationExecutor<MakerAd> {
 
     @EntityGraph(attributePaths = {
-            "fiatAsset",
-            "cryptoAsset",
-            "paymentMethods"
     })
     Page<MakerAd> findAllByStatus(
             AdStatus status,
@@ -28,9 +25,6 @@ public interface MakerAdRepository extends JpaRepository<MakerAd, UUID>,
     );
 
     @EntityGraph(attributePaths = {
-            "fiatAsset",
-            "cryptoAsset",
-            "paymentMethods"
     })
     Page<MakerAd> findAllBySideAndStatus(
             AdSide side,
@@ -43,14 +37,10 @@ public interface MakerAdRepository extends JpaRepository<MakerAd, UUID>,
             from MakerAd ad
             where ad.status = :status
               and ad.side = :side
-              and upper(ad.fiatAsset.code) = upper(:fiatCode)
-              and upper(ad.cryptoAsset.code) = upper(:cryptoCode)
             """)
     Page<MakerAd> search(
             @Param("status") AdStatus status,
             @Param("side") AdSide side,
-            @Param("fiatCode") String fiatCode,
-            @Param("cryptoCode") String cryptoCode,
             Pageable pageable
     );
 
@@ -59,7 +49,7 @@ public interface MakerAdRepository extends JpaRepository<MakerAd, UUID>,
     @Query("""
             select ad
             from MakerAd ad
-            where ad.amount >= :amount
+            where ad.availableAmount >= :amount
               and ad.status = 'LISTED'
             """)
     List<MakerAd> findAvailableAds(

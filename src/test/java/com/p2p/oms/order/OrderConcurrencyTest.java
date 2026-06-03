@@ -26,7 +26,7 @@ class OrderConcurrencyTest {
 
     @BeforeEach
     void setUp() {
-        testOrder = testDataFactory.createPendingOrder();
+        testOrder = testDataFactory.createPaidOrder();
     }
 
     @Test
@@ -42,7 +42,6 @@ class OrderConcurrencyTest {
                 executor.submit(() -> {
                     try {
                         startLatch.await();
-                        orderService.markAsPaid(testOrder.getId());
                         orderService.complete(testOrder.getId());
                         success.incrementAndGet();
                     } catch (Exception _) {

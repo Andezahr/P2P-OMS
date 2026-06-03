@@ -16,8 +16,6 @@ public record OrderResponse(
 
         UUID takerUserId,
 
-        UUID paymentMethodId,
-
         BigDecimal amount,
 
         BigDecimal price,

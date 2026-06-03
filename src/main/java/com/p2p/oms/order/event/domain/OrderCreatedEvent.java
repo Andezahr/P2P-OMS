@@ -13,7 +13,6 @@ public record OrderCreatedEvent(
         UUID makerAdId,
         UUID makerUserId,
         UUID takerUserId,
-        UUID paymentMethodId,
         BigDecimal amount,
         BigDecimal price,
         Instant expiresAt
@@ -34,7 +33,6 @@ public record OrderCreatedEvent(
             UUID makerAdId,
             UUID makerUserId,
             UUID takerUserId,
-            UUID paymentMethodId,
             BigDecimal amount,
             BigDecimal price,
             Instant expiresAt
@@ -47,7 +45,6 @@ public record OrderCreatedEvent(
                 makerAdId,
                 makerUserId,
                 takerUserId,
-                paymentMethodId,
                 amount,
                 price,
                 expiresAt

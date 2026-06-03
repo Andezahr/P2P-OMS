@@ -35,39 +35,6 @@ public final class MakerAdPredicates {
         };
     }
 
-    public static Specification<MakerAd> hasFiat(
-            @Nullable String fiat
-    ) {
-
-        return (root, _, cb) -> {
-
-            if (fiat == null || fiat.isBlank()) {
-                return cb.conjunction();
-            }
-
-            return cb.equal(
-                    cb.upper(root.get("fiatAsset").get("code")),
-                    fiat.toUpperCase()
-            );
-        };
-    }
-
-    public static Specification<MakerAd> hasCrypto(
-            @Nullable String crypto
-    ) {
-
-        return (root, _, cb) -> {
-
-            if (crypto == null || crypto.isBlank()) {
-                return cb.conjunction();
-            }
-
-            return cb.equal(
-                    cb.upper(root.get("cryptoAsset").get("code")),
-                    crypto.toUpperCase()
-            );
-        };
-    }
 
     public static Specification<MakerAd> supportsAmount(
             @Nullable BigDecimal amount

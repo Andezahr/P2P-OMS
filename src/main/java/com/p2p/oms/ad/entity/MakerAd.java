@@ -1,18 +1,13 @@
 package com.p2p.oms.ad.entity;
 
-import com.p2p.oms.asset.entity.CryptoAsset;
-import com.p2p.oms.asset.entity.FiatAsset;
 import com.p2p.oms.common.entity.BaseEntity;
-import com.p2p.oms.payment.entity.PaymentMethod;
+import com.p2p.oms.exception.InsufficientLiquidityException;
 import com.p2p.oms.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(
@@ -20,15 +15,10 @@ import java.util.List;
         indexes = {
                 @Index(name = "idx_p2p_ads_user_id", columnList = "user_id"),
                 @Index(name = "idx_p2p_ads_status", columnList = "status"),
-                @Index(name = "idx_p2p_ads_fiat_asset_id", columnList = "fiat_asset_id"),
-                @Index(name = "idx_p2p_ads_crypto_asset_id", columnList = "crypto_asset_id")
         }
 )
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MakerAd extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -45,24 +35,7 @@ public class MakerAd extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
-    @Builder.Default
-    private AdStatus status = AdStatus.DELISTED;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "fiat_asset_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_ad_fiat_asset")
-    )
-    private FiatAsset fiatAsset;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "crypto_asset_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_ad_crypto_asset")
-    )
-    private CryptoAsset cryptoAsset;
+    private AdStatus status;
 
     @Positive
     @Column(nullable = false, precision = 19, scale = 8)
@@ -77,21 +50,109 @@ public class MakerAd extends BaseEntity {
     private BigDecimal maxLimit;
 
     @Positive
-    @Column(nullable = false, precision = 19, scale = 8)
-    private BigDecimal amount;
+    @Column(name = "total_amount", nullable = false, precision = 19, scale = 8)
+    private BigDecimal totalAmount;
 
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
+    @Positive
+    @Column(name = "available_amount", nullable = false, precision = 19, scale = 8)
+    private BigDecimal availableAmount;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "p2p_ad_payment_methods",
-            joinColumns = @JoinColumn(name = "ad_id"),
-            inverseJoinColumns = @JoinColumn(name = "payment_method_id"),
-            foreignKey = @ForeignKey(name = "fk_ad_payment_method_ad"),
-            inverseForeignKey = @ForeignKey(name = "fk_ad_payment_method_method")
-    )
-    @Builder.Default
-    private List<PaymentMethod> paymentMethods =
-            new ArrayList<>();
+    @Column(name = "reserved_amount", nullable = false, precision = 19, scale = 8)
+    private BigDecimal reservedAmount;
+
+    private MakerAd(User makerUser, AdSide side, BigDecimal price, BigDecimal minLimit,
+                    BigDecimal maxLimit, BigDecimal totalAmount
+    ) {
+        this.makerUser = makerUser;
+        this.side = side;
+        this.status = AdStatus.DELISTED;
+        this.price = price;
+        this.minLimit = minLimit;
+        this.maxLimit = maxLimit;
+        this.totalAmount = totalAmount;
+        this.availableAmount = totalAmount;
+        this.reservedAmount = BigDecimal.ZERO;
+    }
+
+    public static MakerAd create(User makerUser, AdSide side, BigDecimal price, BigDecimal minLimit,
+                                 BigDecimal maxLimit, BigDecimal totalAmount
+    ) {
+        return new MakerAd(makerUser, side, price, minLimit,
+                maxLimit, totalAmount
+        );
+    }
+
+    public void reserve(BigDecimal amount) {
+
+        if (availableAmount.compareTo(amount) < 0) {
+            throw new InsufficientLiquidityException(amount.toString());
+        }
+
+        availableAmount = availableAmount.subtract(amount);
+        reservedAmount = reservedAmount.add(amount);
+    }
+
+    public void release(BigDecimal amount) {
+
+        if (reservedAmount.compareTo(amount) < 0) {
+            throw new InsufficientLiquidityException(amount.toString());
+        }
+
+        reservedAmount = reservedAmount.subtract(amount);
+        availableAmount = availableAmount.add(amount);
+    }
+
+    public void complete(BigDecimal amount) {
+
+        if (reservedAmount.compareTo(amount) < 0) {
+            throw new InsufficientLiquidityException(amount.toString());
+        }
+
+        reservedAmount = reservedAmount.subtract(amount);
+        totalAmount = totalAmount.subtract(amount);
+
+        if (totalAmount.compareTo(BigDecimal.ZERO) == 0) {
+            status = AdStatus.DELISTED;
+        }
+    }
+
+    public void changeStatus(AdStatus status) {
+        switch (status) {
+            case LISTED -> {
+                if (availableAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new InsufficientLiquidityException("Cannot activate ad without liquidity");
+                }
+                this.status = AdStatus.LISTED;
+            }
+            case DELISTED ->
+                    this.status = AdStatus.DELISTED;
+            case DELETED ->
+                    this.status = AdStatus.DELETED;
+            default ->
+                    throw new IllegalStateException("Unsupported status transition");
+        }
+    }
+
+    public void update(
+            BigDecimal price,
+            BigDecimal minLimit,
+            BigDecimal maxLimit,
+            BigDecimal totalAmount
+    ) {
+        this.price = price;
+        this.minLimit = minLimit;
+        this.maxLimit = maxLimit;
+        this.totalAmount = totalAmount;
+
+        this.availableAmount =
+                totalAmount.subtract(reservedAmount);
+
+        if (this.availableAmount.compareTo(BigDecimal.ZERO) == 0) {
+            this.status = AdStatus.DELISTED;
+        }
+    }
+
+    public void delete() {
+        this.status = AdStatus.DELETED;
+    }
 }

@@ -3,50 +3,26 @@ package com.p2p.oms.ad.mapper;
 import com.p2p.oms.ad.dto.request.CreateMakerAdRequest;
 import com.p2p.oms.ad.dto.response.MakerAdResponse;
 import com.p2p.oms.ad.entity.MakerAd;
-import com.p2p.oms.asset.entity.CryptoAsset;
-import com.p2p.oms.asset.entity.FiatAsset;
-import com.p2p.oms.payment.entity.PaymentMethod;
-
 import com.p2p.oms.user.entity.User;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface MakerAdMapper {
 
-    @Mapping(target = "fiatAsset", source = "fiatAsset.code")
-    @Mapping(target = "cryptoAsset", source = "cryptoAsset.code")
     MakerAdResponse toResponse(MakerAd ad);
 
-    List<MakerAdResponse> toResponseList(
-            List<MakerAd> ads
-    );
+    List<MakerAdResponse> toResponseList(List<MakerAd> ads);
 
-    @Mapping(target = "status", constant = "LISTED")
-    @Mapping(target = "makerUser", source = "makerUser")
-    @Mapping(target = "side", source = "request.side")
-    @Mapping(target = "price", source = "request.price")
-    @Mapping(target = "minLimit", source = "request.minLimit")
-    @Mapping(target = "maxLimit", source = "request.maxLimit")
-    @Mapping(target = "amount", source = "request.amount")
-    @Mapping(target = "fiatAsset", source = "fiatAsset")
-    @Mapping(target = "cryptoAsset", source = "cryptoAsset")
-    @Mapping(target = "paymentMethods", source = "paymentMethods")
-    @Mapping(target = "deletedAt", ignore = true)
-    MakerAd toEntity(
-            User makerUser,
-            CreateMakerAdRequest request,
-            FiatAsset fiatAsset,
-            CryptoAsset cryptoAsset,
-            List<PaymentMethod> paymentMethods
-    );
-
-    default String map(
-            PaymentMethod paymentMethod
-    ) {
-
-        return paymentMethod.getCode();
+    default MakerAd toEntity(User makerUser, CreateMakerAdRequest request) {
+        return MakerAd.create(
+                makerUser,
+                request.side(),
+                request.price(),
+                request.minLimit(),
+                request.maxLimit(),
+                request.amount()
+        );
     }
 }
