@@ -7,19 +7,23 @@ import java.util.UUID;
 public interface OrderService {
 
     OrderResponse create(
+            UUID takerUserId,
             CreateOrderRequest request
     );
 
     void markAsPaid(
-            UUID orderId
+            UUID orderId,
+            UUID userId
     );
 
     void complete(
-            UUID orderId
+            UUID orderId,
+            UUID userId
     );
 
     void cancel(
-            UUID orderId
+            UUID orderId,
+            UUID userId
     );
 
     void openDispute(

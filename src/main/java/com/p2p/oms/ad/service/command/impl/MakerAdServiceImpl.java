@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
@@ -26,116 +26,54 @@ public class MakerAdServiceImpl implements MakerAdService {
 
     private final MakerAdRepository makerAdRepository;
     private final UserRepository userRepository;
-
     private final DomainEventPublisher eventPublisher;
 
     @Override
-    public MakerAd create(
-            UUID userId,
-            CreateMakerAdRequest request
-    ) {
-
-        User makerUser = userRepository
-                .findById(userId)
-                .orElseThrow(NotFoundException.of("USER"));
+    public MakerAd create(UUID userId, CreateMakerAdRequest request) {
+        User makerUser = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("USER"));
 
         if (request.side() == AdSide.SELL) {
             makerUser.reserveForAd(request.amount());
         }
 
         MakerAd ad = MakerAd.create(
-                makerUser,
-                request.side(),
-                request.price(),
-                request.minLimit(),
-                request.maxLimit(),
-                request.amount()
+                makerUser, request.side(), request.price(),
+                request.minLimit(), request.maxLimit(), request.amount()
         );
 
-        persist(ad);
+        makerAdRepository.save(ad);
+        // userRepository.save(makerUser); // Не обязателен, Hibernate видит изменения в managed-объекте
 
-        userRepository.saveAndFlush(makerUser);
-
+        publishEvents(ad);
         return ad;
     }
 
     @Override
-    public MakerAd update(
-            UUID adId,
-            UUID userId,
-            UpdateMakerAdRequest request
-    ) {
+    public MakerAd update(UUID adId, UUID userId, UpdateMakerAdRequest request) {
+        MakerAd ad = getOwnedAd(adId, userId);
 
-        MakerAd ad = getOwnedAd(
-                adId,
-                userId
-        );
+        adjustBalanceOnUpdate(ad, request.amount());
 
-        User makerUser = getUser(request, ad);
+        ad.update(request.price(), request.minLimit(), request.maxLimit(), request.amount());
 
-        ad.update(
-                request.price(),
-                request.minLimit(),
-                request.maxLimit(),
-                request.amount()
-        );
-
-        persist(ad);
-
-        userRepository.saveAndFlush(makerUser);
-
+        makerAdRepository.save(ad);
+        publishEvents(ad);
         return ad;
     }
 
-    private static User getUser(UpdateMakerAdRequest request, MakerAd ad) {
-        User makerUser = ad.getMakerUser();
-
-        if (ad.getSide() == AdSide.SELL) {
-
-            if (request.amount().compareTo(ad.getTotalAmount()) > 0) {
-
-                makerUser.reserveForAd(
-                        request.amount().subtract(ad.getTotalAmount())
-                );
-
-            } else if (request.amount().compareTo(ad.getTotalAmount()) < 0) {
-
-                makerUser.releaseFromAd(
-                        ad.getTotalAmount().subtract(request.amount())
-                );
-            }
-        }
-        return makerUser;
-    }
-
     @Override
-    public void changeStatus(
-            UUID adId,
-            UUID userId,
-            ChangeAdStatusRequest request
-    ) {
-
-        MakerAd ad = getOwnedAd(
-                adId,
-                userId
-        );
-
+    public void changeStatus(UUID adId, UUID userId, ChangeAdStatusRequest request) {
+        MakerAd ad = getOwnedAd(adId, userId);
         ad.changeStatus(request.status());
 
-        persist(ad);
+        makerAdRepository.save(ad);
+        publishEvents(ad);
     }
 
     @Override
-    public void delete(
-            UUID adId,
-            UUID userId
-    ) {
-
-        MakerAd ad = getOwnedAd(
-                adId,
-                userId
-        );
-
+    public void delete(UUID adId, UUID userId) {
+        MakerAd ad = getOwnedAd(adId, userId);
         User makerUser = ad.getMakerUser();
 
         if (ad.getSide() == AdSide.SELL) {
@@ -143,31 +81,37 @@ public class MakerAdServiceImpl implements MakerAdService {
         }
 
         ad.delete();
-
-        persist(ad);
-
-        userRepository.saveAndFlush(makerUser);
+        makerAdRepository.save(ad);
+        publishEvents(ad);
     }
 
-    private void persist(MakerAd ad) {
-        makerAdRepository.saveAndFlush(ad);
+    private void adjustBalanceOnUpdate(MakerAd ad, BigDecimal newAmount) {
+        if (ad.getSide() != AdSide.SELL) {
+            return;
+        }
+
+        BigDecimal oldAmount = ad.getTotalAmount();
+        BigDecimal delta = newAmount.subtract(oldAmount);
+
+        User makerUser = ad.getMakerUser();
+        if (delta.compareTo(BigDecimal.ZERO) > 0) {
+            makerUser.reserveForAd(delta);
+        } else if (delta.compareTo(BigDecimal.ZERO) < 0) {
+            makerUser.releaseFromAd(delta.abs());
+        }
+    }
+
+    private void publishEvents(MakerAd ad) {
         eventPublisher.publishAll(ad.pullEvents());
     }
 
-    private MakerAd getOwnedAd(
-            UUID adId,
-            UUID userId
-    ) {
-
+    private MakerAd getOwnedAd(UUID adId, UUID userId) {
         MakerAd ad = makerAdRepository.findById(adId)
                 .orElseThrow(NotFoundException.of("MAKER_AD"));
 
         if (!ad.getMakerUser().getId().equals(userId)) {
-            throw new ForbiddenOperationException(
-                    "Cannot manage someone else's ad"
-            );
+            throw new ForbiddenOperationException("Cannot manage someone else's ad");
         }
-
         return ad;
     }
 }

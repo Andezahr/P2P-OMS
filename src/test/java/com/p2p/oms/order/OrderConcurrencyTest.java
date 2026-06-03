@@ -42,7 +42,7 @@ class OrderConcurrencyTest {
                 executor.submit(() -> {
                     try {
                         startLatch.await();
-                        orderService.complete(testOrder.getId());
+                        orderService.complete(testOrder.getId(), testOrder.getMakerUser().getId());
                         success.incrementAndGet();
                     } catch (Exception _) {
                         failed.incrementAndGet();

@@ -5,12 +5,14 @@ import com.p2p.oms.ad.dto.response.MakerAdResponse;
 import com.p2p.oms.ad.entity.MakerAd;
 import com.p2p.oms.user.entity.User;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface MakerAdMapper {
 
+    @Mapping(target = "makerUserId", source = "makerUser.id")
     MakerAdResponse toResponse(MakerAd ad);
 
     List<MakerAdResponse> toResponseList(List<MakerAd> ads);

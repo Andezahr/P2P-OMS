@@ -44,7 +44,10 @@ public interface MakerAdRepository extends JpaRepository<MakerAd, UUID>,
             Pageable pageable
     );
 
-    List<MakerAd> findAllByMakerUserId(UUID userId);
+    Page<MakerAd> findByMakerUserId(
+            UUID userId,
+            Pageable pageable
+    );
 
     @Query("""
             select ad

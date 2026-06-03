@@ -61,6 +61,6 @@ public class OrderTestDataFactory {
         Order order = Order.create(makerAd, maker, taker, orderAmount, new BigDecimal("78"));
         order.markAsPaid();
 
-        return orderRepository.saveAndFlush(order);
+        return orderRepository.save(order);
     }
 }

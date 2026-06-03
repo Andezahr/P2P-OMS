@@ -3,6 +3,7 @@ package com.p2p.oms.order.service;
 import com.p2p.oms.ad.entity.MakerAd;
 import com.p2p.oms.ad.repository.MakerAdRepository;
 import com.p2p.oms.common.event.DomainEventPublisher;
+import com.p2p.oms.exception.ForbiddenOperationException;
 import com.p2p.oms.exception.NotFoundException;
 import com.p2p.oms.order.dto.OrderMapper;
 import com.p2p.oms.order.dto.request.CreateOrderRequest;
@@ -34,11 +35,11 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
 
     @Override
-    public OrderResponse create(CreateOrderRequest request) {
+    public OrderResponse create(UUID userId, CreateOrderRequest request) {
 
         MakerAd makerAd = makerAdRepository.findById(request.makerAdId()).orElseThrow(NotFoundException.of("MAKER_AD"));
         User makerUser = makerAd.getMakerUser();
-        User takerUser = userRepository.findById(request.takerUserId()).orElseThrow(NotFoundException.of("TAKER_USER"));
+        User takerUser = userRepository.findById(userId).orElseThrow(NotFoundException.of("TAKER_USER"));
 
         Order order = Order.create(
                 makerAd,
@@ -57,18 +58,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void markAsPaid(UUID orderId) {
+    public void markAsPaid(UUID orderId, UUID userId) {
         Order order = orderRepository.findById(orderId).orElseThrow(NotFoundException.of("ORDER"));
-
+        if (!order.getTakerUser().getId().equals(userId)) {
+            throw new ForbiddenOperationException("FORBIDDEN_NOT_TAKER");
+        }
         order.markAsPaid();
         persist(order);
     }
 
     @Override
-    public void complete(UUID orderId) {
+    public void complete(UUID orderId, UUID userId) {
         Order order = orderRepository.findById(orderId).orElseThrow(NotFoundException.of("ORDER"));
         User makerUser = order.getMakerUser();
         User takerUser = order.getTakerUser();
+
+        if (!order.getMakerUser().getId().equals(userId)) {
+            throw new ForbiddenOperationException("FORBIDDEN_NOT_MAKER");
+        }
 
         order.complete();
         makerUser.completeOrder(order.getAmount()); // Releasing money in user
@@ -82,10 +89,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void cancel(UUID orderId) {
+    public void cancel(UUID orderId, UUID userId) {
         Order order = orderRepository.findById(orderId).orElseThrow(NotFoundException.of("ORDER"));
         User makerUser = order.getMakerUser();
         MakerAd makerAd = order.getMakerAd();
+        if (!order.getTakerUser().getId().equals(userId)) {
+            throw new ForbiddenOperationException("FORBIDDEN_NOT_TAKER");
+        }
 
         order.cancel();
         makerUser.releaseFromOrder(order.getAmount());
@@ -123,7 +133,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void persist(Order order) {
-        orderRepository.saveAndFlush(order);
+        orderRepository.save(order);
         eventPublisher.publishAll(order.pullEvents());
     }
 

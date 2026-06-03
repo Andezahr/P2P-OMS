@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record MakerAdResponse(
         UUID id,
-        UUID userId,
+        UUID makerUserId,
 
         String side,
         String status,
@@ -14,7 +14,7 @@ public record MakerAdResponse(
         BigDecimal price,
         BigDecimal minLimit,
         BigDecimal maxLimit,
-        BigDecimal amount,
+        BigDecimal totalAmount,
 
         Instant createdAt
 ) {

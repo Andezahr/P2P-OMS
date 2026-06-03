@@ -2,72 +2,90 @@ package com.p2p.oms.ad.controller;
 
 import com.p2p.oms.ad.dto.request.ChangeAdStatusRequest;
 import com.p2p.oms.ad.dto.request.CreateMakerAdRequest;
-import com.p2p.oms.ad.dto.request.SearchAdsRequest;
 import com.p2p.oms.ad.dto.request.UpdateMakerAdRequest;
 import com.p2p.oms.ad.dto.response.MakerAdResponse;
 import com.p2p.oms.ad.dto.response.PageResponse;
-import com.p2p.oms.ad.entity.AdSide;
 import com.p2p.oms.ad.entity.MakerAd;
-import com.p2p.oms.ad.mapper.MakerAdMapper;
-import com.p2p.oms.ad.mapper.SearchAdsMapper;
+import com.p2p.oms.ad.query.SearchAdsCriteria;
 import com.p2p.oms.ad.service.command.MakerAdService;
 import com.p2p.oms.ad.service.query.MakerAdQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
+@NullMarked
 @RestController
+@RequestMapping("/api/ads")
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/ads")
 public class MakerAdController {
 
+    private final MakerAdService commandService;
     private final MakerAdQueryService queryService;
-    private final SearchAdsMapper searchAdsMapper;
-    private final MakerAdService makerAdService;
-    private final MakerAdMapper mapper;
+
+    // --- Query Operations ---
 
     @GetMapping
-    public PageResponse<MakerAdResponse> search(
-            @RequestParam(required = false) AdSide side,
-            @RequestParam(required = false) BigDecimal amount,
-            Pageable pageable) {
-        SearchAdsRequest request = new SearchAdsRequest(side, amount);
-        return queryService.search(searchAdsMapper.toCriteria(request), pageable);
+    public ResponseEntity<PageResponse<MakerAdResponse>> search(
+            @ModelAttribute SearchAdsCriteria criteria,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return ResponseEntity.ok(queryService.search(criteria, pageable));
     }
 
+    @GetMapping("/my")
+    public ResponseEntity<PageResponse<MakerAdResponse>> getMyAds(
+            @RequestAttribute("userId") UUID userId,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return ResponseEntity.ok(queryService.getUserAds(userId, pageable));
+    }
+
+    @GetMapping("/{adId}")
+    public ResponseEntity<MakerAdResponse> getAdById(@PathVariable UUID adId) {
+        return ResponseEntity.ok(queryService.getAdById(adId));
+    }
+
+    // --- Command Operations ---
+
     @PostMapping
-    public MakerAdResponse create(
-            @RequestHeader("X-User-Id") UUID userId,
-            @Valid @RequestBody CreateMakerAdRequest request) {
-        MakerAd ad = makerAdService.create(userId, request);
-        return mapper.toResponse(ad);
+    public ResponseEntity<MakerAd> createAd(
+            @RequestAttribute("userId") UUID userId,
+            @Valid @RequestBody CreateMakerAdRequest request
+    ) {
+        return ResponseEntity.ok(commandService.create(userId, request));
     }
 
     @PutMapping("/{adId}")
-    public MakerAdResponse update(
+    public ResponseEntity<MakerAd> updateAd(
+            @RequestAttribute("userId") UUID userId,
             @PathVariable UUID adId,
-            @RequestHeader("X-User-Id") UUID userId,
-            @Valid @RequestBody UpdateMakerAdRequest request) {
-        MakerAd ad = makerAdService.update(adId, userId, request);
-        return mapper.toResponse(ad);
+            @Valid @RequestBody UpdateMakerAdRequest request
+    ) {
+        return ResponseEntity.ok(commandService.update(adId, userId, request));
     }
 
     @PatchMapping("/{adId}/status")
-    public void changeStatus(
+    public ResponseEntity<Void> changeStatus(
+            @RequestAttribute("userId") UUID userId,
             @PathVariable UUID adId,
-            @RequestHeader("X-User-Id") UUID userId,
-            @Valid @RequestBody ChangeAdStatusRequest request) {
-        makerAdService.changeStatus(adId, userId, request);
+            @Valid @RequestBody ChangeAdStatusRequest request
+    ) {
+        commandService.changeStatus(adId, userId, request);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{adId}")
-    public void delete(
-            @PathVariable UUID adId,
-            @RequestHeader("X-User-Id") UUID userId) {
-        makerAdService.delete(adId, userId);
+    public ResponseEntity<Void> deleteAd(
+            @RequestAttribute("userId") UUID userId,
+            @PathVariable UUID adId
+    ) {
+        commandService.delete(adId, userId);
+        return ResponseEntity.ok().build();
     }
 }
