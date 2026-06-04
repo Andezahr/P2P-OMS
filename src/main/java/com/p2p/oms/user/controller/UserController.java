@@ -45,11 +45,27 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<User> getUserByEmail(@RequestParam String email) {
-        return ResponseEntity.ok(userService.getUserByEmail(email));
+    public ResponseEntity<UserDto> getUserByEmail(@RequestParam String email) {
+        return ResponseEntity.ok(UserDto.from(userService.getUserByEmail(email)));
     }
 
     public record UserCreateRequest(@Email String email) {}
 
     public record BalanceRequest(@NotNull @Positive BigDecimal amount) {}
+
+    public record UserDto(
+            UUID id,
+            String email,
+            BigDecimal balance,
+            BigDecimal availableBalance
+    ) {
+        public static UserDto from(User user) {
+            return new UserDto(
+                    user.getId(),
+                    user.getEmail(),
+                    user.getBalance(),
+                    user.availableBalance()
+            );
+        }
+    }
 }

@@ -6,6 +6,7 @@ import com.p2p.oms.ad.dto.request.UpdateMakerAdRequest;
 import com.p2p.oms.ad.dto.response.MakerAdResponse;
 import com.p2p.oms.ad.dto.response.PageResponse;
 import com.p2p.oms.ad.entity.MakerAd;
+import com.p2p.oms.ad.mapper.MakerAdMapper;
 import com.p2p.oms.ad.query.SearchAdsCriteria;
 import com.p2p.oms.ad.service.command.MakerAdService;
 import com.p2p.oms.ad.service.query.MakerAdQueryService;
@@ -27,6 +28,7 @@ public class MakerAdController {
 
     private final MakerAdService commandService;
     private final MakerAdQueryService queryService;
+    private final MakerAdMapper mapper;
 
     // --- Query Operations ---
 
@@ -40,7 +42,7 @@ public class MakerAdController {
 
     @GetMapping("/my")
     public ResponseEntity<PageResponse<MakerAdResponse>> getMyAds(
-            @RequestAttribute("userId") UUID userId,
+            @RequestHeader("X-User-Id") UUID userId,
             @PageableDefault(size = 20) Pageable pageable
     ) {
         return ResponseEntity.ok(queryService.getUserAds(userId, pageable));
@@ -54,25 +56,27 @@ public class MakerAdController {
     // --- Command Operations ---
 
     @PostMapping
-    public ResponseEntity<MakerAd> createAd(
-            @RequestAttribute("userId") UUID userId,
+    public ResponseEntity<MakerAdResponse> createAd(
+            @RequestHeader("X-User-Id") UUID userId,
             @Valid @RequestBody CreateMakerAdRequest request
     ) {
-        return ResponseEntity.ok(commandService.create(userId, request));
+        MakerAd created = commandService.create(userId, request);
+        return ResponseEntity.ok(mapper.toResponse(created));
     }
 
     @PutMapping("/{adId}")
-    public ResponseEntity<MakerAd> updateAd(
-            @RequestAttribute("userId") UUID userId,
+    public ResponseEntity<MakerAdResponse> updateAd(
+            @RequestHeader("X-User-Id") UUID userId,
             @PathVariable UUID adId,
             @Valid @RequestBody UpdateMakerAdRequest request
     ) {
-        return ResponseEntity.ok(commandService.update(adId, userId, request));
+        MakerAd updated = commandService.update(adId, userId, request);
+        return ResponseEntity.ok(mapper.toResponse(updated));
     }
 
     @PatchMapping("/{adId}/status")
     public ResponseEntity<Void> changeStatus(
-            @RequestAttribute("userId") UUID userId,
+            @RequestHeader("X-User-Id") UUID userId,
             @PathVariable UUID adId,
             @Valid @RequestBody ChangeAdStatusRequest request
     ) {
@@ -82,7 +86,7 @@ public class MakerAdController {
 
     @DeleteMapping("/{adId}")
     public ResponseEntity<Void> deleteAd(
-            @RequestAttribute("userId") UUID userId,
+            @RequestHeader("X-User-Id") UUID userId,
             @PathVariable UUID adId
     ) {
         commandService.delete(adId, userId);

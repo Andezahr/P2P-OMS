@@ -1,11 +1,11 @@
-kind: Application
 spring:
   application:
     name: oms
 
   jpa:
+    defer-datasource-initialization: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     open-in-view: false
     properties:
       hibernate:
@@ -13,16 +13,20 @@ spring:
         enhancer:
           enableAssociationManagement: false
 
-  datasource:
-    url: jdbc:h2:mem:oms
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+  liquibase:
+    enabled: false
+    change-log: classpath:db/changelog/db.changelog-master.yaml
 
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+  cloud:
+    function:
+      definition: none
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/oms
+    driver-class-name: org.postgresql.Driver
+    username: myuser
+    password: secret
+
 
   sql:
     init:
@@ -30,6 +34,17 @@ spring:
 
   devtools:
     add-properties: false
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: oms
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
 springdoc:
   api-docs:
@@ -40,7 +55,9 @@ springdoc:
 logging:
   level:
     com.p2p.oms: INFO
-    root: WARN
+    root: INFO
+    liquibase: INFO
+    org.springframework.boot.autoconfigure.liquibase: INFO
     org.springframework.boot: INFO
     org.springframework.web: WARN
     org.hibernate: WARN

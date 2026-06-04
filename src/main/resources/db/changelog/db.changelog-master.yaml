@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - include:
+      relativeToChangelogFile: true
+      file: 001-create-users-table.yaml
+
+  - include:
+      relativeToChangelogFile: true
+      file: 002-create-p2p-ads-table.yaml
+
+  - include:
+      relativeToChangelogFile: true
+      file: 003-create-orders-table.yaml
+
+  - include:
+      relativeToChangelogFile: true
+      file: 004-create-outbox-events-table.yaml
