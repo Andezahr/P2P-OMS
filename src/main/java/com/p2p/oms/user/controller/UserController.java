@@ -1,17 +1,15 @@
 package com.p2p.oms.user.controller;
 
-import com.p2p.oms.user.entity.User;
+import com.p2p.oms.user.dto.BalanceRequest;
+import com.p2p.oms.user.dto.UserCreateRequest;
+import com.p2p.oms.user.dto.UserResponse;
 import com.p2p.oms.user.service.UserService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @NullMarked
@@ -23,13 +21,13 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody UserCreateRequest request) {
-        return ResponseEntity.ok(userService.createUser(request.email()));
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserCreateRequest request) {
+        return ResponseEntity.ok(UserResponse.from(userService.createUser(request.email())));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable UUID id) {
-        return ResponseEntity.ok(userService.getUser(id));
+    public ResponseEntity<UserResponse> getUser(@PathVariable UUID id) {
+        return ResponseEntity.ok(UserResponse.from(userService.getUser(id)));
     }
 
     @PostMapping("/{id}/deposit")
@@ -45,27 +43,8 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<UserDto> getUserByEmail(@RequestParam String email) {
-        return ResponseEntity.ok(UserDto.from(userService.getUserByEmail(email)));
+    public ResponseEntity<UserResponse> getUserByEmail(@RequestParam String email) {
+        return ResponseEntity.ok(UserResponse.from(userService.getUserByEmail(email)));
     }
 
-    public record UserCreateRequest(@Email String email) {}
-
-    public record BalanceRequest(@NotNull @Positive BigDecimal amount) {}
-
-    public record UserDto(
-            UUID id,
-            String email,
-            BigDecimal balance,
-            BigDecimal availableBalance
-    ) {
-        public static UserDto from(User user) {
-            return new UserDto(
-                    user.getId(),
-                    user.getEmail(),
-                    user.getBalance(),
-                    user.availableBalance()
-            );
-        }
-    }
 }

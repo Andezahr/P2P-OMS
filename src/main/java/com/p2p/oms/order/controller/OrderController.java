@@ -1,13 +1,13 @@
 package com.p2p.oms.order.controller;
 
 import com.p2p.oms.order.dto.request.CreateOrderRequest;
+import com.p2p.oms.order.dto.request.DisputeRequest;
 import com.p2p.oms.order.dto.response.OrderResponse;
 import com.p2p.oms.order.dto.response.PageResponse;
 import com.p2p.oms.order.query.OrderSearchCriteria;
 import com.p2p.oms.order.service.OrderService;
 import com.p2p.oms.order.service.query.OrderQueryService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.data.domain.Pageable;
@@ -92,5 +92,4 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
-    public record DisputeRequest(@NotBlank String reason) {}
 }
