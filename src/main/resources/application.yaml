@@ -17,11 +17,20 @@ spring:
     enabled: false
     change-log: classpath:db/changelog/db.changelog-master.yaml
 
+  cloud:
+    function:
+      definition: none
+
   datasource:
     url: jdbc:postgresql://localhost:5432/oms
     driver-class-name: org.postgresql.Driver
     username: myuser
     password: secret
+
+
+  sql:
+    init:
+      mode: never
 
   devtools:
     add-properties: false
