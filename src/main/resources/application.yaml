@@ -2,35 +2,15 @@ spring:
   application:
     name: oms
 
-  jpa:
-    defer-datasource-initialization: true
-    hibernate:
-      ddl-auto: validate
-    open-in-view: false
-    properties:
-      hibernate:
-        format_sql: false
-        enhancer:
-          enableAssociationManagement: false
-
-  liquibase:
-    enabled: false
-    change-log: classpath:db/changelog/db.changelog-master.yaml
-
-  cloud:
-    function:
-      definition: none
-
   datasource:
     url: jdbc:postgresql://localhost:5432/oms
     driver-class-name: org.postgresql.Driver
     username: myuser
     password: secret
 
-
-  sql:
-    init:
-      mode: never
+  jpa:
+    hibernate:
+      ddl-auto: update
 
   devtools:
     add-properties: false
@@ -41,7 +21,7 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     consumer:
-      group-id: oms
+      group-id: telegram-notifications
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -66,3 +46,6 @@ logging:
     org.hibernate.bytecode.enhance: ERROR
   pattern:
     console: "%d{HH:mm:ss} %-5level %logger{36} - %msg%n"
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN}

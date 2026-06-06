@@ -31,14 +31,14 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponse> getOrder(
             @PathVariable UUID orderId,
-            @RequestAttribute("userId") UUID userId
+            @RequestHeader("userId") UUID userId
     ) {
         return ResponseEntity.ok(orderQueryService.getById(orderId, userId));
     }
 
     @GetMapping("/my")
     public ResponseEntity<PageResponse<OrderResponse>> getMyOrders(
-            @RequestAttribute("userId") UUID userId,
+            @RequestHeader("userId") UUID userId,
             @ModelAttribute OrderSearchCriteria criteria,
             @PageableDefault(size = 20) Pageable pageable
     ) {
@@ -49,7 +49,7 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(
-            @RequestAttribute("userId") UUID takerUserId,
+            @RequestHeader("userId") UUID takerUserId,
             @Valid @RequestBody CreateOrderRequest request
     ) {
         return ResponseEntity.ok(orderService.create(takerUserId, request));
@@ -58,7 +58,7 @@ public class OrderController {
     @PostMapping("/{orderId}/pay")
     public ResponseEntity<Void> markAsPaid(
             @PathVariable UUID orderId,
-            @RequestAttribute("userId") UUID userId
+            @RequestHeader("userId") UUID userId
     ) {
         orderService.markAsPaid(orderId, userId);
         return ResponseEntity.ok().build();
@@ -67,7 +67,7 @@ public class OrderController {
     @PostMapping("/{orderId}/complete")
     public ResponseEntity<Void> complete(
             @PathVariable UUID orderId,
-            @RequestAttribute("userId") UUID userId
+            @RequestHeader("userId") UUID userId
     ) {
         orderService.complete(orderId, userId);
         return ResponseEntity.ok().build();
@@ -76,7 +76,7 @@ public class OrderController {
     @PostMapping("/{orderId}/cancel")
     public ResponseEntity<Void> cancel(
             @PathVariable UUID orderId,
-            @RequestAttribute("userId") UUID userId
+            @RequestHeader("userId") UUID userId
     ) {
         orderService.cancel(orderId, userId);
         return ResponseEntity.ok().build();
@@ -85,7 +85,7 @@ public class OrderController {
     @PostMapping("/{orderId}/dispute")
     public ResponseEntity<Void> openDispute(
             @PathVariable UUID orderId,
-            @RequestAttribute("userId") UUID initiatorId,
+            @RequestHeader("userId") UUID initiatorId,
             @Valid @RequestBody DisputeRequest request
     ) {
         orderService.openDispute(orderId, initiatorId, request.reason());

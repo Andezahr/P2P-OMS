@@ -23,7 +23,7 @@ public class OutboxEvent {
     @Column(nullable = false, length = 128)
     private String eventType;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String payload;
 
     @Column(nullable = false)
