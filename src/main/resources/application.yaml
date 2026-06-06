@@ -48,4 +48,4 @@ logging:
     console: "%d{HH:mm:ss} %-5level %logger{36} - %msg%n"
 telegram:
   bot:
-    token: ${TELEGRAM_BOT_TOKEN}
+    token: ${TELEGRAM_BOT_TOKEN:placeholder}
